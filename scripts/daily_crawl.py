@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """每日爬取脚本 - 用于 GitHub Actions
 自动爬取过去一周的数据，已存在的文件不会覆盖
 """
