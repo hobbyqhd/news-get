@@ -52,7 +52,10 @@ jobs:
     - name: Get current date
       if: steps.check_files.outputs.has_new_files == 'true'
       run: |
-        echo "CURRENT_DATE=$(date +'%Y-%m-%d %H:%M')" >> $GITHUB_ENV
+        echo "CURRENT_DATE=$(date -u +'%Y-%m-%d %H:%M' | awk '{print $1" "$2}' && date -d '8 hours' -u +'%H:%M' 2>/dev/null || date -v+8H +'%H:%M')" >> $GITHUB_ENV
+        # 北京时间 (UTC+8)
+        BEIJING_TIME=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')
+        echo "CURRENT_DATE=$BEIJING_TIME" >> $GITHUB_ENV
       
     - name: Prepare email body with MD content
       if: steps.check_files.outputs.has_new_files == 'true'
@@ -72,3 +75,12 @@ jobs:
         from: ${{ secrets.GMAIL_USERNAME }}
         secure: false
         encryption: tls
+    
+    - name: Commit and push new files
+      if: steps.check_files.outputs.has_new_files == 'true' && success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/news/*.md
+        git commit -m "自动爬取新闻 - $(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')" || echo "No changes to commit"
+        git push origin main
