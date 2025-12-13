@@ -129,10 +129,6 @@ def main():
     else:
         logger.info("\n没有新爬取的新闻（可能都已存在）")
     
-    # 如果报告已保存，输出报告路径
-    if report_path:
-        logger.info(f"\n报告文件: {report_path}")
-    
     # 返回退出码（总是成功，只要有尝试）
     return 0
 
