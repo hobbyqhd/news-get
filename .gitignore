@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+temp.html
+*.log
+
+# 日志目录（可选，如果想提交日志可以注释掉）
+# data/logs/*
+
+# 环境变量
+.env
+.env.local
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 数据文件（可选，如果不想提交生成的图片和存档）
+# data/images/*
+# data/archives/*
+# !data/images/.gitkeep
+# !data/archives/.gitkeep
+
