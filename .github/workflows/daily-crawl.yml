@@ -50,6 +50,13 @@ jobs:
           NEW_FILES=$(cat data/new_files.txt | tr '\n' ',' | sed 's/,$//')
           echo "NEW_FILES=$NEW_FILES" >> $GITHUB_ENV
           echo "✓ Attachments prepared: $NEW_FILES"
+          # 验证附件文件编码
+          echo "Checking attachment encodings:"
+          cat data/new_files.txt | while read file; do
+            if [ -f "$file" ]; then
+              file "$file"
+            fi
+          done
         else
           echo "No new files to attach"
           echo "NEW_FILES=" >> $GITHUB_ENV
@@ -64,17 +71,21 @@ jobs:
         username: ${{ secrets.GMAIL_USERNAME }}
         password: ${{ secrets.GMAIL_APP_PASSWORD }}
         subject: "每日新闻更新 - ${{ env.CURRENT_DATE }}"
-        body: |
-          亲爱的用户，
-          
-          今日成功爬取了新的新闻，请查看附件（仅包含本次新生成的新闻文档）。
-          
-          新闻日期范围：过去7天（仅发送缺失的文档）
-          
-          祝好！
-          GitHub Actions
+        html_body: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body>
+              <p>亲爱的用户，</p>
+              <p>今日成功爬取了新的新闻，请查看附件（仅包含本次新生成的新闻文档）。</p>
+              <p>新闻日期范围：过去7天（仅发送缺失的文档）</p>
+              <p>祝好！<br>GitHub Actions</p>
+          </body>
+          </html>
         to: liubingxin1030@outlook.com
         from: ${{ secrets.GMAIL_USERNAME }}
         attachments: ${{ env.NEW_FILES }}
-        content_type: text/html
-        charset: UTF-8
+        secure: true
