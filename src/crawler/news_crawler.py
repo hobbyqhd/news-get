@@ -925,8 +925,8 @@ def save_news_to_file(title: str, content: str, date: datetime) -> Optional[str]
 *URL: {build_news_url(date)}*
 """
         
-        # 保存文件
-        file_path.write_text(markdown_content, encoding='utf-8')
+        # 保存文件（添加 UTF-8 BOM 以兼容苹果设备）
+        file_path.write_text('\ufeff' + markdown_content, encoding='utf-8')
         logger.info(f"新闻已保存到: {file_path}")
         
         return str(file_path)
