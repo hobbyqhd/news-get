@@ -37,6 +37,9 @@ jobs:
         mkdir -p data/archives
         mkdir -p data/images
         
+    - name: Clean existing news files
+      run: rm -f data/news/*.md
+        
     - name: Run daily crawl
       run: python scripts/daily_crawl.py
       
