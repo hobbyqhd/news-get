@@ -39,7 +39,6 @@ jobs:
         
     - name: Run daily crawl
       run: python scripts/daily_crawl.py
-      continue-on-error: true
       
     - name: Commit and push changes
       run: |
