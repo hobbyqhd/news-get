@@ -88,4 +88,5 @@ jobs:
         to: liubingxin1030@outlook.com
         from: ${{ secrets.GMAIL_USERNAME }}
         attachments: ${{ env.NEW_FILES }}
-        secure: true
+        secure: false
+        encryption: tls
