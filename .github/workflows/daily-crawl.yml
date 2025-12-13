@@ -42,10 +42,22 @@ jobs:
       
     - name: Send email with news
       if: success()
-      run: |
-        if [ -n "$(find data/news -name "*.md" -newer .git/refs/heads/main 2>/dev/null)" ]; then
-          echo "有新文件，发送邮件"
-          # 这里可以添加发送邮件的逻辑
-        else
-          echo "没有新文件，跳过发送邮件"
-        fi
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp-mail.outlook.com
+        server_port: 587
+        username: ${{ secrets.OUTLOOK_USERNAME }}
+        password: ${{ secrets.OUTLOOK_PASSWORD }}
+        subject: "每日新闻更新 - $(date +'%Y-%m-%d')"
+        body: |
+          亲爱的用户，
+          
+          今日成功爬取了新的新闻，请查看附件。
+          
+          新闻日期范围：过去7天
+          
+          祝好！
+          GitHub Actions
+        to: liubingxin1030@outlook.com
+        from: liubingxin1030@outlook.com
+        attachments: data/news/20251211.md,data/news/20251212.md
