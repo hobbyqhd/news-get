@@ -40,11 +40,12 @@ jobs:
     - name: Run daily crawl
       run: python scripts/daily_crawl.py
       
-    - name: Commit and push changes
+    - name: Send email with news
+      if: success()
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git pull --rebase origin main || true
-        git add data/
-        git commit -m "Daily news crawl: $(date +'%Y-%m-%d')" || echo "No changes to commit"
-        git push
+        if [ -n "$(find data/news -name "*.md" -newer .git/refs/heads/main 2>/dev/null)" ]; then
+          echo "有新文件，发送邮件"
+          # 这里可以添加发送邮件的逻辑
+        else
+          echo "没有新文件，跳过发送邮件"
+        fi
