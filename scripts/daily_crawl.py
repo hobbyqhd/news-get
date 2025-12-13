@@ -15,24 +15,29 @@ from src.crawler.news_crawler_v2 import crawl_and_save_news_items
 from src.reports.daily_report import DailyReport
 from src.utils.file_manager import get_report_file_path
 
-# 确保日志目录存在
-log_dir = project_root / 'data' / 'logs'
-log_dir.mkdir(parents=True, exist_ok=True)
-
-# 配置日志
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(log_dir / f'daily_{datetime.now().strftime("%Y%m%d")}.log')
-    ]
-)
 logger = logging.getLogger(__name__)
+
+
+def setup_logging():
+    """设置日志配置"""
+    # 确保日志目录存在
+    log_dir = project_root / 'data' / 'logs'
+    log_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 配置日志
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            logging.FileHandler(log_dir / f'daily_{datetime.now().strftime("%Y%m%d")}.log')
+        ]
+    )
 
 
 def main():
     """主函数"""
+    setup_logging()
     logger.info("=" * 60)
     logger.info("每日新闻爬取任务开始（过去一周）")
     logger.info("=" * 60)
