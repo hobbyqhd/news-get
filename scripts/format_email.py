@@ -172,10 +172,11 @@ def main():
 <head><meta charset="UTF-8"></head>
 <body><p>今日未新增新闻内容。</p></body>
 </html>"""
-        os.environ['EMAIL_BODY'] = email_body
         # 写入环境变量
-        with open(os.environ.get('GITHUB_ENV', '/tmp/github_env'), 'a', encoding='utf-8') as f:
-            f.write(f"EMAIL_BODY<<ENDOF\n{email_body}\nENDOF\n")
+        github_env = os.environ.get('GITHUB_ENV')
+        if github_env:
+            with open(github_env, 'a', encoding='utf-8') as f:
+                f.write(f"EMAIL_BODY<<ENDOF\n{email_body}\nENDOF\n")
         return
     
     # 读取文件列表
@@ -186,19 +187,9 @@ def main():
     files.sort(reverse=True)
     files = files[:3]
     
-    # 如果没有文件，返回空邮件
-    if not files:
-        print("No new files found")
-        email_body = """<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"></head>
-<body><p>今日未新增新闻内容。</p></body>
-</html>"""
-        github_env = os.environ.get('GITHUB_ENV')
-        if github_env:
-            with open(github_env, 'a', encoding='utf-8') as f:
-                f.write(f"EMAIL_BODY<<ENDOF\n{email_body}\nENDOF\n")
-        return
+    # 生成新闻内容 HTML
+    news_content = ""
+    for file_path in files:
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
