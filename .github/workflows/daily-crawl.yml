@@ -44,22 +44,70 @@ jobs:
       run: |
         echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
       
-    - name: Prepare attachments
+    - name: Prepare email body with MD content
       run: |
         if [ -f data/new_files.txt ] && [ -s data/new_files.txt ]; then
-          NEW_FILES=$(cat data/new_files.txt | tr '\n' ',' | sed 's/,$//')
-          echo "NEW_FILES=$NEW_FILES" >> $GITHUB_ENV
-          echo "✓ Attachments prepared: $NEW_FILES"
-          # 验证附件文件编码
-          echo "Checking attachment encodings:"
+          # 创建临时 HTML 文件存储邮件内容
+          cat > /tmp/email_body.html << 'EOF'
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }
+              .container { max-width: 800px; margin: 0 auto; }
+              .header { color: #333; margin-bottom: 20px; }
+              .news-item { background: #f5f5f5; padding: 15px; margin: 15px 0; border-left: 4px solid #007bff; }
+              .news-date { color: #007bff; font-weight: bold; margin-bottom: 10px; }
+              .news-content { color: #333; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; }
+              .footer { margin-top: 30px; color: #666; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>📰 每日新闻更新</h2>
+              <p>亲爱的用户，</p>
+              <p>以下是今日新生成的新闻内容（仅包含本次新增文档）：</p>
+            </div>
+        EOF
+          
+          # 逐个读取 new_files.txt 中的文件，将内容追加到 HTML
           cat data/new_files.txt | while read file; do
             if [ -f "$file" ]; then
-              file "$file"
+              # 提取日期作为标题
+              date_part=$(basename "$file" .md)
+              echo "    <div class=\"news-item\">" >> /tmp/email_body.html
+              echo "      <div class=\"news-date\">📅 $date_part</div>" >> /tmp/email_body.html
+              echo "      <div class=\"news-content\">" >> /tmp/email_body.html
+              # 读取文件内容，进行 HTML 转义
+              cat "$file" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' >> /tmp/email_body.html
+              echo "      </div>" >> /tmp/email_body.html
+              echo "    </div>" >> /tmp/email_body.html
             fi
           done
+          
+          # 添加页脚
+          cat >> /tmp/email_body.html << 'EOF'
+            <div class="footer">
+              <p>祝好！<br>GitHub Actions 自动化爬虫</p>
+            </div>
+          </div>
+        </body>
+        </html>
+        EOF
+          
+          # 将内容转换为环保的环境变量（使用 EOF 分隔）
+          EMAIL_BODY=$(cat /tmp/email_body.html)
+          echo "EMAIL_BODY<<EOF" >> $GITHUB_ENV
+          echo "$EMAIL_BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+          
+          echo "✓ Email body prepared with MD content"
         else
-          echo "No new files to attach"
-          echo "NEW_FILES=" >> $GITHUB_ENV
+          echo "No new files found"
+          echo "EMAIL_BODY=<p>今日未新增新闻内容。</p>" >> $GITHUB_ENV
         fi
       
     - name: Send email with news
@@ -71,22 +119,8 @@ jobs:
         username: ${{ secrets.GMAIL_USERNAME }}
         password: ${{ secrets.GMAIL_APP_PASSWORD }}
         subject: "每日新闻更新 - ${{ env.CURRENT_DATE }}"
-        html_body: |
-          <!DOCTYPE html>
-          <html>
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          </head>
-          <body>
-              <p>亲爱的用户，</p>
-              <p>今日成功爬取了新的新闻，请查看附件（仅包含本次新生成的新闻文档）。</p>
-              <p>新闻日期范围：过去7天（仅发送缺失的文档）</p>
-              <p>祝好！<br>GitHub Actions</p>
-          </body>
-          </html>
+        html_body: ${{ env.EMAIL_BODY }}
         to: liubingxin1030@outlook.com
         from: ${{ secrets.GMAIL_USERNAME }}
-        attachments: ${{ env.NEW_FILES }}
         secure: false
         encryption: tls
