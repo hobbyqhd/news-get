@@ -47,7 +47,7 @@ jobs:
         server_address: smtp-mail.outlook.com
         server_port: 587
         username: ${{ secrets.OUTLOOK_USERNAME }}
-        password: ${{ secrets.OUTLOOK_PASSWORD }}
+        password: ${{ secrets.OUTLOOK_APP_PASSWORD }}
         subject: "每日新闻更新 - $(date +'%Y-%m-%d')"
         body: |
           亲爱的用户，
