@@ -6,6 +6,7 @@ import logging
 import sys
 from pathlib import Path
 from datetime import datetime, timedelta
+import time
 
 # 添加项目根目录到路径
 project_root = Path(__file__).parent.parent
@@ -66,6 +67,7 @@ def main():
     
     # 遍历每一天进行爬取
     for date in dates_to_crawl:
+        time.sleep(2)  # 添加延迟避免被网站阻塞
         logger.info("")
         logger.info(f"处理日期: {date.strftime('%Y-%m-%d')}")
         logger.info("-" * 60)
