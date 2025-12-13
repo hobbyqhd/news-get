@@ -43,10 +43,10 @@ def main():
     logger.info("每日新闻爬取任务开始（过去一周）")
     logger.info("=" * 60)
     
-    # 爬取过去一周的数据（包括今天，共7天）
+    # 爬取最近三天的数据（包括今天，共3天）
     today = datetime.now()
     dates_to_crawl = []
-    for i in range(7):
+    for i in range(3):
         date = today - timedelta(days=i)
         dates_to_crawl.append(date)
     
