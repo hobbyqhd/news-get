@@ -40,6 +40,11 @@ jobs:
     - name: Run daily crawl
       run: python scripts/daily_crawl.py
       
+    - name: List news files for attachment
+      run: |
+        NEWS_FILES=$(ls data/news/*.md 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+        echo "NEWS_FILES=$NEWS_FILES" >> $GITHUB_ENV
+      
     - name: Send email with news
       if: success()
       uses: dawidd6/action-send-mail@v3
@@ -60,4 +65,4 @@ jobs:
           GitHub Actions
         to: liubingxin1030@outlook.com
         from: ${{ secrets.GMAIL_USERNAME }}
-        attachments: data/news/20251211.md,data/news/20251212.md
+        attachments: ${{ env.NEWS_FILES }}
