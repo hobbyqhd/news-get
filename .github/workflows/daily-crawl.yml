@@ -39,6 +39,7 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        git pull --rebase origin main || true
         git add data/
         git commit -m "Daily news crawl: $(date +'%Y-%m-%d')" || echo "No changes to commit"
         git push
