@@ -43,10 +43,10 @@ def main():
     logger.info("每日新闻爬取任务开始（过去一周）")
     logger.info("=" * 60)
     
-    # 爬取最近三天的数据（包括今天，共3天）
+    # 爬取过去一周的数据（包括今天，共7天）
     today = datetime.now()
     dates_to_crawl = []
-    for i in range(3):
+    for i in range(7):
         date = today - timedelta(days=i)
         dates_to_crawl.append(date)
     
@@ -63,7 +63,13 @@ def main():
     # 统计信息
     total_stats = {"success": 0, "failed": 0, "skipped": 0}
     all_news_items = []
-    generated_files = []  # 记录本次生成的 md 文件
+    newly_generated_files = []  # 记录本次新生成的 md 文件（之前不存在的）
+    
+    # 提前检查目标目录中已存在的文件
+    news_dir = project_root / 'data' / 'news'
+    existing_files = set()
+    if news_dir.exists():
+        existing_files = {f.name for f in news_dir.glob('*.md')}
     
     # 遍历每一天进行爬取
     for date in dates_to_crawl:
@@ -83,11 +89,13 @@ def main():
         total_stats["failed"] += stats["failed"]
         total_stats["skipped"] += stats["skipped"]
         
-        # 记录本次应该生成的 md 文件（不管是否成功）
+        # 记录本次实际生成的新文件（之前不存在的）
         md_filename = f"{date.strftime('%Y%m%d')}.md"
         md_filepath = project_root / 'data' / 'news' / md_filename
-        if md_filepath.exists() and md_filename not in generated_files:
-            generated_files.append(md_filename)
+        # 如果文件现在存在，且之前不存在，则是新生成的
+        if md_filepath.exists() and md_filename not in existing_files:
+            if md_filename not in newly_generated_files:
+                newly_generated_files.append(md_filename)
         
         # 更新报告
         for item in news_items:
@@ -105,19 +113,19 @@ def main():
         logger.info(f"  ✗ 失败: {stats['failed']} 条")
         logger.info(f"  ⏭ 跳过: {stats['skipped']} 条（已存在）")
     
-    # 保存生成的 md 文件列表到文件
+    # 保存本次新生成的 md 文件列表到文件（用于邮件附件）
     new_files_path = project_root / 'data' / 'new_files.txt'
-    if generated_files:
+    if newly_generated_files:
         with open(new_files_path, 'w') as f:
-            for filename in sorted(generated_files):
+            for filename in sorted(newly_generated_files):
                 f.write(f"data/news/{filename}\n")
-        logger.info(f"✓ 新文件列表已保存: {new_files_path}")
-        logger.info(f"  包含文件: {', '.join(sorted(generated_files))}")
+        logger.info(f"✓ 本次新生成的文件已保存: {new_files_path}")
+        logger.info(f"  包含文件: {', '.join(sorted(newly_generated_files))}")
     else:
         # 即使没有新文件也创建空文件，避免步骤报错
         with open(new_files_path, 'w') as f:
             f.write("")
-        logger.info("没有新生成的 md 文件")
+        logger.info("本次没有新生成的 md 文件")
     
     # 输出总体统计信息
     logger.info("")
@@ -126,6 +134,7 @@ def main():
     logger.info(f"总计成功: {total_stats['success']} 条")
     logger.info(f"总计失败: {total_stats['failed']} 条")
     logger.info(f"总计跳过: {total_stats['skipped']} 条（已存在）")
+    logger.info(f"本次新生成文件: {len(newly_generated_files)} 个")
     logger.info("=" * 60)
     
     # 输出成功爬取的新闻列表和URL

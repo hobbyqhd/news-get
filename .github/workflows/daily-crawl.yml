@@ -37,9 +37,6 @@ jobs:
         mkdir -p data/archives
         mkdir -p data/images
         
-    - name: Clean existing news files
-      run: rm -f data/news/*.md
-        
     - name: Run daily crawl
       run: python scripts/daily_crawl.py
       
@@ -66,9 +63,9 @@ jobs:
         body: |
           亲爱的用户，
           
-          今日成功爬取了新的新闻，请查看附件。
+          今日成功爬取了新的新闻，请查看附件（仅包含本次新生成的新闻文档）。
           
-          新闻日期范围：过去7天
+          新闻日期范围：过去7天（仅发送缺失的文档）
           
           祝好！
           GitHub Actions
