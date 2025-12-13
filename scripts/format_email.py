@@ -182,9 +182,23 @@ def main():
     with open('data/new_files.txt', 'r', encoding='utf-8') as f:
         files = [line.strip() for line in f if line.strip()]
     
-    # 生成新闻内容 HTML
-    news_content = ""
-    for file_path in files:
+    # 按日期排序（倒序，最新的在前），并只取前 3 个
+    files.sort(reverse=True)
+    files = files[:3]
+    
+    # 如果没有文件，返回空邮件
+    if not files:
+        print("No new files found")
+        email_body = """<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body><p>今日未新增新闻内容。</p></body>
+</html>"""
+        github_env = os.environ.get('GITHUB_ENV')
+        if github_env:
+            with open(github_env, 'a', encoding='utf-8') as f:
+                f.write(f"EMAIL_BODY<<ENDOF\n{email_body}\nENDOF\n")
+        return
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -205,6 +219,10 @@ def main():
     
     # 生成最终 HTML
     html_body = html_template.format(content=news_content)
+    
+    # 统计包含的天数
+    days_count = len(files)
+    print(f"✓ Email body prepared with {days_count} day(s) of news (max 3 days)")
     
     # 写入环境变量文件
     github_env = os.environ.get('GITHUB_ENV')
