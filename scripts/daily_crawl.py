@@ -62,6 +62,7 @@ def main():
     # 统计信息
     total_stats = {"success": 0, "failed": 0, "skipped": 0}
     all_news_items = []
+    generated_files = []  # 记录本次生成的 md 文件
     
     # 遍历每一天进行爬取
     for date in dates_to_crawl:
@@ -84,6 +85,10 @@ def main():
         for item in news_items:
             report.add_success(item)
             all_news_items.append(item)
+            # 记录生成的 md 文件
+            md_filename = f"{date.strftime('%Y%m%d')}.md"
+            if md_filename not in generated_files:
+                generated_files.append(md_filename)
         
         if stats["failed"] > 0:
             report.add_failed(date)
@@ -96,13 +101,15 @@ def main():
         logger.info(f"  ✗ 失败: {stats['failed']} 条")
         logger.info(f"  ⏭ 跳过: {stats['skipped']} 条（已存在）")
     
-    # 保存报告
-    report_path = report.save()
-    
-    if report_path:
-        logger.info(f"\n✓ 报告已保存: {report_path}")
+    # 保存生成的 md 文件列表到文件
+    if generated_files:
+        new_files_path = project_root / 'data' / 'new_files.txt'
+        with open(new_files_path, 'w') as f:
+            for filename in generated_files:
+                f.write(f"data/news/{filename}\n")
+        logger.info(f"✓ 新文件列表已保存: {new_files_path}")
     else:
-        logger.error("\n✗ 报告保存失败")
+        logger.info("没有新生成的 md 文件")
     
     # 输出总体统计信息
     logger.info("")
