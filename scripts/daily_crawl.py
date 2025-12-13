@@ -83,14 +83,16 @@ def main():
         total_stats["failed"] += stats["failed"]
         total_stats["skipped"] += stats["skipped"]
         
+        # 记录本次应该生成的 md 文件（不管是否成功）
+        md_filename = f"{date.strftime('%Y%m%d')}.md"
+        md_filepath = project_root / 'data' / 'news' / md_filename
+        if md_filepath.exists() and md_filename not in generated_files:
+            generated_files.append(md_filename)
+        
         # 更新报告
         for item in news_items:
             report.add_success(item)
             all_news_items.append(item)
-            # 记录生成的 md 文件
-            md_filename = f"{date.strftime('%Y%m%d')}.md"
-            if md_filename not in generated_files:
-                generated_files.append(md_filename)
         
         if stats["failed"] > 0:
             report.add_failed(date)
@@ -104,13 +106,17 @@ def main():
         logger.info(f"  ⏭ 跳过: {stats['skipped']} 条（已存在）")
     
     # 保存生成的 md 文件列表到文件
+    new_files_path = project_root / 'data' / 'new_files.txt'
     if generated_files:
-        new_files_path = project_root / 'data' / 'new_files.txt'
         with open(new_files_path, 'w') as f:
-            for filename in generated_files:
+            for filename in sorted(generated_files):
                 f.write(f"data/news/{filename}\n")
         logger.info(f"✓ 新文件列表已保存: {new_files_path}")
+        logger.info(f"  包含文件: {', '.join(sorted(generated_files))}")
     else:
+        # 即使没有新文件也创建空文件，避免步骤报错
+        with open(new_files_path, 'w') as f:
+            f.write("")
         logger.info("没有新生成的 md 文件")
     
     # 输出总体统计信息
