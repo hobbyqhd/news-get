@@ -37,13 +37,17 @@ jobs:
         mkdir -p data/archives
         mkdir -p data/images
         
+    - name: Record existing news files
+      run: ls data/news/*.md 2>/dev/null || true > existing_files.txt
+      
     - name: Run daily crawl
       run: python scripts/daily_crawl.py
       
-    - name: List news files for attachment
+    - name: List new news files for attachment
       run: |
-        NEWS_FILES=$(ls data/news/*.md 2>/dev/null | tr '\n' ',' | sed 's/,$//')
-        echo "NEWS_FILES=$NEWS_FILES" >> $GITHUB_ENV
+        ls data/news/*.md 2>/dev/null || true > current_files.txt
+        NEW_FILES=$(comm -23 <(sort current_files.txt) <(sort existing_files.txt) | tr '\n' ',' | sed 's/,$//')
+        echo "NEW_FILES=$NEW_FILES" >> $GITHUB_ENV
       
     - name: Send email with news
       if: success()
@@ -65,4 +69,4 @@ jobs:
           GitHub Actions
         to: liubingxin1030@outlook.com
         from: ${{ secrets.GMAIL_USERNAME }}
-        attachments: ${{ env.NEWS_FILES }}
+        attachments: ${{ env.NEW_FILES }}
