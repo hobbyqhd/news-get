@@ -26,42 +26,48 @@ def build_directory_url(date: datetime, use_zero_padding: bool = True) -> str:
     year = date.year
     month = date.month
     day = date.day
-    
+
     if use_zero_padding:
         url = f"http://mrxwlb.com/{year}/{month:02d}/{day:02d}/"
     else:
         url = f"http://mrxwlb.com/{year}/{month}/{day}/"
-    
+
     return url
+
+
+def build_govopendata_url(date: datetime) -> str:
+    """
+    构建 govopendata 的新闻URL，格式示例: https://cn.govopendata.com/xinwenlianbo/20250121/
+    """
+    return f"https://cn.govopendata.com/xinwenlianbo/{date.strftime('%Y%m%d')}/"
 
 
 def build_news_url(date: datetime, use_zero_padding: bool = True) -> str:
     """
     构建新闻URL
-    
+
     Args:
         date: 日期对象
         use_zero_padding: 是否使用前导零（True: 01/07, False: 1/7）
-        
+
     Returns:
         str: 新闻URL
     """
     year = date.year
     month = date.month
     day = date.day
-    
+
     # URL格式: http://mrxwlb.com/YYYY/MM/DD/2025年MM月DD日新闻联播文字版/
+    date_str_cn = f"{year}年{month:02d}月{day:02d}日"
+    date_str_cn_encoded = quote(date_str_cn.encode('utf-8'))
+
     if use_zero_padding:
         # 两位数格式：01/07
-        date_str_cn = f"{year}年{month:02d}月{day:02d}日"
-        date_str_cn_encoded = quote(date_str_cn.encode('utf-8'))
         url = f"http://mrxwlb.com/{year}/{month:02d}/{day:02d}/{date_str_cn_encoded}新闻联播文字版/"
     else:
         # 个位数格式：1/7（但中文日期仍使用两位数）
-        date_str_cn = f"{year}年{month:02d}月{day:02d}日"
-        date_str_cn_encoded = quote(date_str_cn.encode('utf-8'))
         url = f"http://mrxwlb.com/{year}/{month}/{day}/{date_str_cn_encoded}新闻联播文字版/"
-    
+
     return url
 
 
@@ -500,7 +506,8 @@ def crawl_news_from_directory(date: datetime, skip_existing: bool = True) -> Lis
             result_key = (title, actual_date.strftime('%Y-%m-%d'))
             if result_key not in seen_results:
                 seen_results.add(result_key)
-                results.append((title, content, actual_date))
+                # 同时保留来源链接
+                results.append((title, content, actual_date, link))
                 logger.info(f"成功爬取: {title} (实际日期: {actual_date.strftime('%Y-%m-%d')})")
             else:
                 logger.info(f"跳过重复新闻: {title} (实际日期: {actual_date.strftime('%Y-%m-%d')})")
@@ -537,6 +544,32 @@ def crawl_and_save_from_directory(date: datetime) -> Dict[str, int]:
         Dict[str, int]: 统计信息 {"success": 成功数, "failed": 失败数, "skipped": 跳过数}
     """
     stats = {"success": 0, "failed": 0, "skipped": 0}
+
+    # 检查日期是否为未来日期（新闻联播是历史新闻，不应该爬取未来日期）
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    if date > today:
+        logger.warning(f"⚠️  日期 {date.strftime('%Y-%m-%d')} 是未来日期，新闻联播尚未播出，无法爬取")
+        stats["failed"] = 1
+        return stats
+
+    # 优先直接按日期爬取（使用 govopendata 优先的 fetch_news_by_date）
+    if check_news_file_exists(date):
+        logger.info(f"⏭ 已存在 {date.strftime('%Y-%m-%d')}，跳过爬取")
+        stats["skipped"] = 1
+        return stats
+
+    direct_result = fetch_news_by_date(date)
+    if direct_result:
+        title, content, source_url = direct_result
+        file_path = save_news_to_file(title, content, date, source_url=source_url)
+        if file_path:
+            stats["success"] = 1
+            remove_date_from_not_exist(date)
+            logger.info(f"✓ 直接爬取成功并保存: {file_path}")
+        else:
+            stats["failed"] = 1
+            logger.error(f"✗ 直接爬取后保存失败: {title}")
+        return stats
     
     # 获取目录页面的所有新闻链接
     news_links = fetch_news_links_from_directory(date)
@@ -576,8 +609,15 @@ def crawl_and_save_from_directory(date: datetime) -> Dict[str, int]:
     
     # 保存每个新闻（按实际日期）
     # 注意：crawl_news_from_directory 已经过滤了已存在的文件，这里直接保存即可
-    for title, content, actual_date in news_list:
-        file_path = save_news_to_file(title, content, actual_date)
+    for item in news_list:
+        # item: (title, content, actual_date, source_link)
+        if len(item) == 4:
+            title, content, actual_date, source_link = item
+        else:
+            title, content, actual_date = item
+            source_link = None
+
+        file_path = save_news_to_file(title, content, actual_date, source_url=source_link)
         
         if file_path:
             stats["success"] += 1
@@ -697,21 +737,127 @@ def fetch_news_by_url(url: str, date: datetime = None) -> Optional[Tuple[str, st
         return None
 
 
-def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[str, str]]:
+def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[str, str, str]]:
     """
-    爬取指定日期的新闻
-    
+    爬取指定日期的新闻，优先从 govopendata 新源获取，失败时回退到 mrxwlb。
+
     Args:
         date: 日期对象
         retry_count: 重试次数（用于网络错误）
-        
+
     Returns:
-        Tuple[str, str]: (标题, 格式化后的内容) 或 None
+        Tuple[str, str, str]: (标题, 格式化后的内容, source_url) 或 None
     """
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     }
-    
+
+    # 先尝试新的 govopendata 源（简洁的 YYYYMMDD 目录），如果成功直接返回
+    gov_url = build_govopendata_url(date)
+    logger.info(f"优先尝试 govopendata 源: {gov_url}")
+    def extract_gov_content(soup: BeautifulSoup) -> Optional[str]:
+        """
+        从 govopendata 网站提取所有新闻内容
+        网站结构：每条新闻是一个 <article> 标签，包含 <h2> 标题和 <p> 段落
+        """
+        # 首先尝试找到所有 article 元素（govopendata 的特定结构）
+        articles = soup.find_all('article')
+        
+        if articles and len(articles) > 0:
+            # 找到了多个新闻条目，逐个提取并格式化
+            all_news = []
+            
+            for idx, article in enumerate(articles, 1):
+                # 提取标题 (h2)
+                title_elem = article.find('h2')
+                if not title_elem:
+                    continue
+                    
+                title = title_elem.get_text(strip=True)
+                
+                # 提取段落内容 (p)
+                paragraphs = article.find_all('p')
+                if not paragraphs:
+                    continue
+                    
+                # 清理链接，保留文本
+                for tag in article.find_all(['a'], href=True):
+                    if tag.parent:
+                        tag.replace_with(tag.get_text())
+                
+                # 合并段落内容
+                content_parts = [p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)]
+                if not content_parts:
+                    continue
+                    
+                content = '\n\n'.join(content_parts)
+                
+                # 格式化为 markdown
+                news_block = f"## {idx}. {title}\n\n{content}"
+                all_news.append(news_block)
+            
+            if all_news:
+                # 用分隔线连接所有新闻
+                return '\n\n---\n\n'.join(all_news)
+        
+        # 如果没有找到 article 元素，使用原来的回退逻辑
+        candidates = [
+            soup.find('div', class_='entry-content'),
+            soup.find('div', class_='post-content'),
+            soup.find('div', class_='content'),
+            soup.find('div', id='content'),
+            soup.find('main'),
+            soup.find('section', role='main'),
+            soup.find('section', class_='content'),
+            soup.find('div', class_=lambda x: x and 'post' in ' '.join(x)),
+        ]
+
+        # 过滤掉 None
+        candidates = [c for c in candidates if c]
+
+        # 追加一个回退：如果前面都失败，尝试 body
+        if soup.body:
+            candidates.append(soup.body)
+
+        for block in candidates:
+            # 清理无关元素
+            for tag in block.find_all(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                tag.decompose()
+            for tag in block.find_all(['a'], href=True):
+                if tag.parent:
+                    tag.replace_with(tag.get_text())
+
+            text = block.get_text(separator='\n', strip=True)
+            if text and len(text.strip()) >= 50:
+                return text
+        return None
+
+    try:
+        resp = requests.get(gov_url, headers=headers, timeout=12)
+        if resp.status_code == 200:
+            resp.encoding = 'utf-8'
+            soup = BeautifulSoup(resp.text, 'lxml')
+            title = None
+            title_elem = soup.find('h1') or soup.find('title')
+            if title_elem:
+                title = title_elem.get_text(strip=True)
+
+            if not title:
+                title = f"{date.strftime('%Y年%m月%d日')}新闻联播文字版"
+
+            content = extract_gov_content(soup)
+
+            if content:
+                formatted_content = format_news_content(content)
+                logger.info(f"成功从 govopendata 源爬取: {gov_url}")
+                return title, formatted_content, gov_url
+            else:
+                logger.warning(f"govopendata 未找到正文或内容过短: {gov_url}")
+        else:
+            logger.info(f"govopendata 返回状态: {resp.status_code} -> {gov_url}")
+    except requests.RequestException as e:
+        logger.warning(f"访问 govopendata 源失败: {e}")
+
     # 尝试两种URL格式：先尝试两位数格式，如果404再尝试个位数格式
     url_formats = [
         (True, "两位数格式"),   # 01/07
@@ -821,7 +967,8 @@ def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[s
                 formatted_content = format_news_content(content)
                 
                 logger.info(f"成功爬取文章（使用{format_name}），内容长度: {len(formatted_content)} 字符")
-                return title, formatted_content
+                # 返回时附带实际使用的来源 URL（mrxwlb）
+                return title, formatted_content, url
                 
             except requests.exceptions.Timeout:
                 logger.warning(f"请求超时，URL: {url}")
@@ -888,7 +1035,7 @@ def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[s
     return None
 
 
-def save_news_to_file(title: str, content: str, date: datetime) -> Optional[str]:
+def save_news_to_file(title: str, content: str, date: datetime, source_url: str = None) -> Optional[str]:
     """
     将新闻保存到文件
     
@@ -909,8 +1056,11 @@ def save_news_to_file(title: str, content: str, date: datetime) -> Optional[str]
         date_str = date.strftime('%Y%m%d')
         file_path = news_dir / f'{date_str}.md'
         
+        # 构建 Markdown 内容并记录来源 URL
+        recorded_source = source_url if source_url else build_news_url(date)
+        source_domain = urlparse(recorded_source).netloc if recorded_source else ''
         # 构建 Markdown 内容
-        markdown_content = f"""# {title}
+        markdown_content = f"""# {date.strftime('%Y年%m月%d日')} 新闻联播
 
 **日期**: {date.strftime('%Y年%m月%d日')}  
 **爬取时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -921,8 +1071,8 @@ def save_news_to_file(title: str, content: str, date: datetime) -> Optional[str]
 
 ---
 
-*来源: http://mrxwlb.com/*  
-*URL: {build_news_url(date)}*
+*来源: {source_domain}*  
+*URL: {recorded_source}*
 """
         
         # 保存文件
@@ -945,6 +1095,80 @@ def record_missing_date(date: datetime) -> None:
     """
     # 直接调用 update_not_exist_file 函数，保持格式一致
     update_not_exist_file([date])
+
+
+def remove_date_from_not_exist(date: datetime) -> None:
+    """
+    从 not_exist.md 文件中移除指定日期（当该日期成功爬取后调用）
+
+    Args:
+        date: 要移除的日期
+    """
+    try:
+        data_dir = Path(__file__).parent.parent / 'data' / 'news'
+        not_exist_file = data_dir / 'not_exist.md'
+
+        if not not_exist_file.exists():
+            return
+
+        # 读取现有内容
+        existing_content = not_exist_file.read_text(encoding='utf-8')
+
+        # 提取所有日期
+        import re
+        date_matches = re.findall(r'- (\d{4}-\d{2}-\d{2})', existing_content)
+        all_dates = []
+        for date_str in date_matches:
+            try:
+                all_dates.append(datetime.strptime(date_str, '%Y-%m-%d'))
+            except ValueError:
+                pass
+
+        # 移除指定日期
+        date_str = date.strftime('%Y-%m-%d')
+        all_dates = [d for d in all_dates if d.strftime('%Y-%m-%d') != date_str]
+
+        # 如果没有变化，直接返回
+        if len(all_dates) == len(date_matches):
+            return
+
+        # 去重并排序
+        all_dates = sorted(set(all_dates))
+
+        # 生成新内容
+        content = """# 缺失的新闻日期
+
+本文档记录所有未找到新闻的日期。
+
+**更新时间**: {update_time}
+
+## 缺失日期列表
+
+""".format(update_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+        # 按月份分组
+        current_month = None
+        for d in all_dates:
+            date_str_cn = d.strftime('%Y年%m月%d日')
+            month_str = d.strftime('%Y年%m月')
+
+            if current_month != month_str:
+                if current_month is not None:
+                    content += "\n"
+                content += f"### {month_str}\n\n"
+                current_month = month_str
+
+            content += f"- {d.strftime('%Y-%m-%d')} ({date_str_cn})\n"
+
+        content += "\n---\n"
+        content += f"\n**总计**: {len(all_dates)} 个日期缺失新闻\n"
+
+        # 写入文件
+        not_exist_file.write_text(content, encoding='utf-8')
+        logger.info(f"已从缺失日期文件中移除: {date_str}")
+
+    except Exception as e:
+        logger.error(f"移除缺失日期失败: {e}")
 
 
 def update_not_exist_file(dates: List[datetime]) -> None:
@@ -1059,9 +1283,10 @@ def crawl_and_save(date: datetime = None) -> Optional[str]:
     result = fetch_news_by_date(date)
     if not result:
         return None
-    
-    title, content = result
-    
-    # 保存文件
-    return save_news_to_file(title, content, date)
+
+    # fetch_news_by_date 返回 (title, content, source_url)
+    title, content, source_url = result
+
+    # 保存文件并记录来源
+    return save_news_to_file(title, content, date, source_url=source_url)
 

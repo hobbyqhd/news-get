@@ -121,7 +121,7 @@ def main():
         result = fetch_news_by_url(args.url, date)
         if result:
             title, content, extracted_date = result
-            file_path = save_news_to_file(title, content, extracted_date)
+            file_path = save_news_to_file(title, content, extracted_date, source_url=args.url)
             if file_path:
                 logger.info(f"\n✓ 爬取完成！")
                 logger.info(f"文件保存位置: {file_path}")
