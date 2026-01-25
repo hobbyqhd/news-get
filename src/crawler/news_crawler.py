@@ -552,6 +552,15 @@ def crawl_and_save_from_directory(date: datetime) -> Dict[str, int]:
         stats["failed"] = 1
         return stats
 
+    # 如果是今天，检查当前时间是否已过新闻联播时间（晚上 19:00）
+    if date == today:
+        now = datetime.now()
+        broadcast_hour = 19  # 新闻联播播出时间：19:00
+        if now.hour < broadcast_hour:
+            logger.warning(f"⚠️  当前时间 {now.strftime('%H:%M')} 早于新闻联播时间 {broadcast_hour:02d}:00，新闻联播尚未播出，跳过")
+            stats["skipped"] = 1
+            return stats
+
     # 优先直接按日期爬取（使用 govopendata 优先的 fetch_news_by_date）
     if check_news_file_exists(date):
         logger.info(f"⏭ 已存在 {date.strftime('%Y-%m-%d')}，跳过爬取")
@@ -749,7 +758,20 @@ def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[s
         Tuple[str, str, str]: (标题, 格式化后的内容, source_url) 或 None
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Cache-Control': 'max-age=0',
+        'Pragma': 'no-cache',
+        'Referer': 'https://www.google.com/',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
     }
 
     # 先尝试新的 govopendata 源（简洁的 YYYYMMDD 目录），如果成功直接返回
@@ -826,6 +848,8 @@ def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[s
         return None
 
     try:
+        import time
+        time.sleep(0.5)  # 添加小延迟，避免被检测为机器爬虫
         resp = requests.get(gov_url, headers=headers, timeout=12)
         if resp.status_code == 200:
             resp.encoding = 'utf-8'

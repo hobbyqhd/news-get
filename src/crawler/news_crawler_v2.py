@@ -135,6 +135,15 @@ def crawl_and_save_news_items(date: datetime) -> Dict[str, int]:
         logger.warning(f"⚠️  日期 {date.strftime('%Y-%m-%d')} 是未来日期，新闻联播尚未播出，无法爬取")
         stats["failed"] = 1
         return {"stats": stats, "items": news_items}
+    
+    # 如果是今天，检查当前时间是否已过新闻联播时间（晚上 19:00）
+    if date == today:
+        now = dt.now()
+        broadcast_hour = 19  # 新闻联播播出时间：19:00
+        if now.hour < broadcast_hour:
+            logger.warning(f"⚠️  当前时间 {now.strftime('%H:%M')} 早于新闻联播时间 {broadcast_hour:02d}:00，新闻联播尚未播出，跳过")
+            stats["skipped"] = 1
+            return {"stats": stats, "items": news_items}
 
     # 检查文件是否已存在
     if check_news_file_exists(date):
