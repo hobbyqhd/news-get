@@ -872,6 +872,33 @@ def fetch_news_by_date(date: datetime, retry_count: int = 3) -> Optional[Tuple[s
                 logger.warning(f"govopendata 未找到正文或内容过短: {gov_url}")
         else:
             logger.info(f"govopendata 返回状态: {resp.status_code} -> {gov_url}")
+            
+            # 如果是 403（反爬虫），尝试使用 Selenium
+            if resp.status_code == 403:
+                logger.info(f"遇到 403 反爬虫，尝试使用 Selenium...")
+                from src.utils.browser_helper import fetch_with_selenium
+                try:
+                    html = fetch_with_selenium(gov_url, timeout=15)
+                    if html:
+                        soup = BeautifulSoup(html, 'lxml')
+                        
+                        title = None
+                        title_elem = soup.find('h1') or soup.find('title')
+                        if title_elem:
+                            title = title_elem.get_text(strip=True)
+                        
+                        if not title:
+                            title = f"{date.strftime('%Y年%m月%d日')}新闻联播文字版"
+                        
+                        content = extract_gov_content(soup)
+                        
+                        if content:
+                            formatted_content = format_news_content(content)
+                            logger.info(f"✓ 使用 Selenium 成功从 govopendata 源爬取: {gov_url}")
+                            return title, formatted_content, gov_url
+                except Exception as e:
+                    logger.warning(f"Selenium 尝试失败: {e}")
+                    
     except requests.RequestException as e:
         logger.warning(f"访问 govopendata 源失败: {e}")
 
