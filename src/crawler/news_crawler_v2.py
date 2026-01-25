@@ -15,6 +15,7 @@ from src.utils.file_manager import check_news_file_exists, save_news_file
 from .news_crawler import (
     fetch_news_links_from_directory,
     fetch_news_by_url as _fetch_news_by_url,
+    fetch_news_by_date,
     build_directory_url,
     record_missing_date,
     remove_date_from_not_exist
@@ -115,6 +116,7 @@ def crawl_news_items_from_directory(
 def crawl_and_save_news_items(date: datetime) -> Dict[str, int]:
     """
     从目录页面爬取并保存所有新闻，返回统计信息和 NewsItem 列表
+    优先尝试 govopendata 源，失败时回退到 mrxwlb 目录页面
     
     Args:
         date: 日期对象（目录日期）
@@ -122,8 +124,53 @@ def crawl_and_save_news_items(date: datetime) -> Dict[str, int]:
     Returns:
         Dict: 包含统计信息和新闻列表
     """
+    from datetime import datetime as dt
+    
     stats = {"success": 0, "failed": 0, "skipped": 0}
     news_items: List[NewsItem] = []
+    
+    # 检查日期是否为未来日期
+    today = dt.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    if date > today:
+        logger.warning(f"⚠️  日期 {date.strftime('%Y-%m-%d')} 是未来日期，新闻联播尚未播出，无法爬取")
+        stats["failed"] = 1
+        return {"stats": stats, "items": news_items}
+
+    # 检查文件是否已存在
+    if check_news_file_exists(date):
+        logger.info(f"⏭ 已存在 {date.strftime('%Y-%m-%d')}，跳过爬取")
+        stats["skipped"] = 1
+        return {"stats": stats, "items": news_items}
+
+    # 步骤1: 优先直接按日期爬取（使用 govopendata 优先的 fetch_news_by_date）
+    direct_result = fetch_news_by_date(date)
+    if direct_result:
+        title, content, source_url = direct_result
+        
+        # 创建 NewsItem 对象
+        news_item = NewsItem(
+            title=title,
+            content=content,
+            date=date,
+            url=source_url,
+            source_url=source_url
+        )
+        
+        # 保存文件
+        file_path = save_news_file(news_item.to_markdown(), date)
+        if file_path:
+            logger.info(f"✓ 直接爬取成功并保存: {file_path}")
+            stats["success"] = 1
+            remove_date_from_not_exist(date)
+            news_items.append(news_item)
+        else:
+            logger.error(f"✗ 直接爬取后保存失败: {title}")
+            stats["failed"] = 1
+        
+        return {"stats": stats, "items": news_items}
+    
+    # 步骤2: 如果 govopendata 失败，尝试目录页面（mrxwlb）
+    logger.info(f"govopendata 爬取失败，尝试目录页面方案...")
     
     # 获取目录页面的所有新闻链接
     news_links = fetch_news_links_from_directory(date)
@@ -146,7 +193,7 @@ def crawl_and_save_news_items(date: datetime) -> Dict[str, int]:
             if url_match:
                 try:
                     year, month, day = int(url_match.group(1)), int(url_match.group(2)), int(url_match.group(3))
-                    check_date = datetime(year, month, day)
+                    check_date = dt(year, month, day)
                     if check_news_file_exists(check_date):
                         skipped_count += 1
                 except (ValueError, IndexError):
