@@ -39,6 +39,40 @@ jobs:
       - name: Run Daily News Crawler
         run: |
           python scripts/daily_crawl.py
+      
+      - name: Check if new files exist
+        id: check_files
+        run: |
+          if [ -f data/new_files.txt ] && [ -s data/new_files.txt ]; then
+            echo "has_new_files=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_new_files=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Get current date
+        if: steps.check_files.outputs.has_new_files == 'true'
+        run: |
+          BEIJING_TIME=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M')
+          echo "CURRENT_DATE=$BEIJING_TIME" >> $GITHUB_ENV
+      
+      - name: Prepare email body with MD content
+        if: steps.check_files.outputs.has_new_files == 'true'
+        run: python3 scripts/format_email.py
+      
+      - name: Send email with news
+        if: steps.check_files.outputs.has_new_files == 'true' && success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "每日新闻更新 - ${{ env.CURRENT_DATE }}"
+          html_body: ${{ env.EMAIL_BODY }}
+          to: liubingxin1030@outlook.com
+          from: ${{ secrets.GMAIL_USERNAME }}
+          secure: false
+          encryption: tls
           
       - name: Commit and Push changes
         run: |
