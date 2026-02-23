@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📰 每日新闻更新</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', SimSun, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px 0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 4px solid #667eea;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .meta-info {
+            background-color: #f9f9f9;
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .meta-item strong {
+            color: #667eea;
+            margin-right: 5px;
+        }
+        
+        .content {
+            padding: 30px 20px;
+        }
+        
+        .news-item {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .news-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .news-number {
+            display: inline-block;
+            background-color: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+        
+        .news-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+        
+        .news-content {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 8px;
+        }
+        
+        .news-content p {
+            margin-bottom: 8px;
+        }
+        
+        .section-divider {
+            text-align: center;
+            padding: 20px 0;
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .icon {
+            margin-right: 4px;
+        }
+        
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .source-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 12px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        .source-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .content {
+                padding: 20px 15px;
+            }
+            
+            .news-title {
+                font-size: 15px;
+            }
+            
+            .meta-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📰 每日新闻更新</h1>
+            <p>来自 CCTV 新闻联播的精选内容</p>
+        </div>
+        
+        <!-- Meta Info -->
+        <div class="meta-info">
+            <div class="meta-item">
+                <strong>📅 日期：</strong>
+                <span>2026年02月21日</span>
+            </div>
+            <div class="meta-item">
+                <strong>⏰ 爬取：</strong>
+                <span>2026-02-22 11:19:54</span>
+            </div>
+            <div class="meta-item" style="grid-column: 1 / -1;">
+                <strong>🔗 来源：</strong>
+                <a href="https://cn.govopendata.com/xinwenlianbo/20260221/" class="source-link">https://cn.govopendata.com/xinwenlianbo/20260221/</a>
+            </div>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+                        <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">1</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">【情满中国年】美丽中国 幸福生活</div>
+                        <div class="news-content">习近平总书记指出，环境就是民生，青山就是美丽，蓝天也是幸福。党的十八大以来，在习近平生态文明思想指引下，我国生态文明建设从理论到实践都发生了历史性、转折性、全局性变化，美丽中国建设迈出重大步伐，绿水青山成为越来越多百姓触手可及的幸福。系列报道《情满中国年》，今天（2月21日）来看《美丽中国 幸福生活》。春节假期，云南昆明滇池沙鸥翔集、碧波荡漾，在紧邻滇池的福保社区，人们跳起民族舞蹈，喜迎八方来客，共赏滇池生态美景。2020年春节前夕，习近平总书记来到滇池考察，他叮嘱大家，只要坚持生态优先、绿色发展，锲而不舍，久久为功，就一定能把绿水青山变成金山银山。牢记...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">2</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">各地活动精彩纷呈 喜气洋洋庆新春</div>
+                        <div class="news-content">连日来，人们赏民俗、品文化，用丰富多彩的活动共庆新春、乐享假期，欢度喜庆祥和的中国年。这个春节，国风国潮成为时尚，北京各大公园推出缤纷新春活动。在颐和园，200余盆梅花、蜡梅等花卉竞相绽放，市民游客在移步异景中，感受别样新春雅趣；在陶然亭公园，新春游园会上游人如织，各色小吃、年礼文创、非遗技艺体验等丰富业态，让市民游客在游园赏景、互动体验中邂逅浓浓的京味年俗。在陕西榆林，锣鼓喧天，红绸飞舞，来自全国多地的30多支秧歌队伍轮番登场，扭秧歌、闹新春，为大家送上节日的祝福。在安徽祁门，现场制作的豆糖嵌入“马”字、“福”字，承载着人们对新年的美好期盼。各地持续打...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">3</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">春运前20天预计全社会跨区域人员流动量50.8亿人次</div>
+                        <div class="news-content">2026年春运过半，春运前20天预计全社会跨区域人员流动量达50.8亿人次，日均2.5亿人次，创下历史同期新高。今天（2月21日）全社会跨区域人员流动量预计超3.6亿人次，从正月初三开始，已连续三日客流规模超过历史同期单日峰值。今天各地返程客流增加。全国铁路预计发送旅客1680万人次。贵州、湖北、湖南等地增开务工专列、夜间高铁。人口流入大省广东也迎来返程大客流，581趟列车今天在广州南站同一站台两侧同步停靠，新上线的智慧作业系统让高密度运行和大客流疏导顺畅有序。公路人员流动量今天预计超3.39亿人次，高速公路车流量预计超6500万辆次，交通部门启用空地巡...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">4</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">“探亲+旅游” 过年有新意</div>
+                        <div class="news-content">今年春节，9天假期不仅让人们有了更充裕的时间阖家团圆，也催生了“探亲+旅游”这一过年新方式。或就近领略家乡之美，或规划多站式旅程，人们在团圆与行走之间，感受节日的多重温度。正月初五，江西婺源举办“非遗贺新春”活动，充分展现当地的传统民俗。返乡过年的游子带孩子们一起打卡家乡美食美景，在团圆中度假，在旅行中过年。9天的春节假期让许多家庭实现“一程多站”的深度线路游。在浙江台州，当地推出“一票游三天”的便民举措，方便人们探亲访友之余多次游览、细细品味。很多返乡游客还会选择来到杭州，这两天西湖景区单日客流量已突破80万人次，同比增长超三成。超长假期也让许多学生群...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">5</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">【第二十五届冬奥会】王心迪摘得自由式滑雪男子空中技巧金牌</div>
+                        <div class="news-content">当地时间2月20日，米兰冬奥会开幕式后的第十四个比赛日。在自由式滑雪男子空中技巧比赛中，三战冬奥赛场的王心迪凭借难度系数5.1的翻腾三周转体五周动作，拿下132.60的高分，摘得金牌。另一名中国选手李天马获得铜牌。
+
+---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">6</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">【代表委员履职故事】傅小云：破解基层群众看病难</div>
+                        <div class="news-content">全国政协委员傅小云是遵义医科大学附属医院重症医学专家，从事临床医疗工作近30年。履职期间，他深切感受到让优质医疗资源下沉是解决基层医疗资源匮乏、破解群众看病难的关键。今年全国两会，傅小云将针对基层医疗人才培养和数字化建设提出建议。早上8点，傅小云来到贵州省三都水族自治县人民医院重症监护室，和当地医护人员一起查房。2022年到2024年，傅小云被组织选派到三都水族自治县人民医院帮扶。几年来，傅小云从人才队伍培养、服务能力提升入手，帮助这家身处大山深处的基层医院实现了很大提升。去年全国两会，傅小云提出，建议县级医院通过专家授课、导师制、临床手把手教学实践等，...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">7</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">【文化中国行】辞旧迎新行花街 花海人潮十里长</div>
+                        <div class="news-content">行花街是岭南地区迎新春的一项民俗活动。人们在热闹的花市里，选购年花年货，品特色美食、赏民俗表演，今天（2月21日）的《文化中国行》让我们一起领略这项国家级非遗“花海人潮十里长”的独特魅力。行花街，集合了花卉、特色年俗与商贸文化，一般从除夕夜前三天开始，持续到初一凌晨。2021年，“春节（行花街）”被列入国家级非物质文化遗产代表性项目名录。在广州，有着“百年花市”之称的越秀西湖花市从开市第一天起，就吸引了众多市民游客前来游玩。人们在热闹欢腾的氛围中，购买年花与新奇年货装点生活角落。手捧年橘的往来游客、身背孩子的家长……花海人潮相映成趣，勾勒出一幅辞旧迎新、...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">8</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">国内联播快讯</div>
+                        <div class="news-content">2025年全国光伏新增装机同比增长14%2025年，全国光伏新增装机3.17亿千瓦，同比增长14%。截至2025年12月，全国光伏发电装机容量达到12亿千瓦，同比增长35%。我国光伏产业保持快速发展势头，能源绿色低碳转型取得显著成效。2025年国开行向城市更新领域发放贷款7863亿元2025年，国家开发银行设立城市更新专项贷款，全年发放7863亿元，重点支持城镇老旧小区整治改造，以及老旧街区、老旧厂区、城中村等更新改造，修复城市生态系统，保护传承城市历史文化等，有力支持各地民生改善。首次全国泉水调查监测工作完成近日，水利部完成首次全国泉水调查监测工作。调...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">9</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">外国领导人和国际组织负责人祝贺马年新春</div>
+                        <div class="news-content">近日，又有许多国家领导人和国际组织负责人致电或致函中共中央总书记、国家主席习近平，祝贺中国人民喜迎马年新春。德国总理默茨在社交媒体发文祝贺春节快乐，期待马年为德中关系注入力量和新动力。巴基斯坦总统扎尔达里祝愿中国和平安宁、繁荣昌盛，中华民族复兴伟业不断向前推进，表示巴方由衷钦佩中国在经济转型、科技进步、脱贫减贫和现代化建设方面取得的非凡成就，中国提出的四大全球倡议彰显中国锐意进取、开拓创新、团结一致的精神。今年恰逢巴中建交75周年，相信在习近平主席富有远见的卓越领导下，巴中两国必将在未来开启更紧密合作的新篇章。哈萨克斯坦总统托卡耶夫表示，春节寓意着万象更...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">10</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">第16届全球海外华文书店中国图书春节联展活动举办</div>
+                        <div class="news-content">第16届全球海外华文书店中国图书春节联展活动近日在美国、英国、法国、新加坡、突尼斯、澳大利亚等全球40个国家和地区的百余家华文书店举办。联展期间，各参展书店将习近平总书记著作和相关学习读物在显著位置展览展示，集中展销一批解读党和国家重大决策部署、展现新时代发展成就及其世界意义的主题出版精品，以及春节主题图书、学术通俗读物、原创少儿图书和汉语学习教材等。面向海外读者，组织开展“我与春节的故事征文比赛”等丰富多彩的交流活动，让各国民众近距离感知春节文化魅力。
+
+---</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">11</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">我驻多国使馆举办活动共庆新春佳节</div>
+                        <div class="news-content">连日来，我驻多国使馆举办新春招待会和精彩的演出等活动，与各国友人共庆新春佳节，共话友谊与合作。中国驻匈牙利使馆近日举办新春招待会暨欢乐春节·丝路欢歌专场演出。匈牙利各界友好人士、驻匈使节等超500人出席。现场气氛热闹喜庆，音乐、舞蹈、杂技等表演呈现中华传统文化的深厚底蕴。在中国驻希腊使馆日前举行的新春招待会上，红灯笼、中国结等装饰高高挂起，现场洋溢着浓浓的中国年味。舞蹈、乐器表演等节目精彩纷呈，赢得来宾们的阵阵掌声。在中国驻智利使馆举行的春节招待会上，智利政府、媒体等各界友好人士以及华人华侨、中资企业员工等欢聚一堂，共庆马年新春。中国驻斯里兰卡使馆近日举...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">12</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">美国最高法院裁定特朗普政府大规模关税政策违法</div>
+                        <div class="news-content">美国最高法院20日以6比3的结果作出裁决，认定美国《国际紧急经济权力法》没有授权总统征收大规模关税。美国媒体称，这意味着特朗普政府的关税政策受到重大挫折。特朗普政府2025年1月上台后援引美国《国际紧急经济权力法》，以不经过国会批准、直接颁布行政令的方式出台一系列加征关税措施。这一行为遭到美国企业和多个州政府的多次起诉。白宫20日确认终止实施此前援引《国际紧急经济权力法》推出的相关关税措施。据美国宾夕法尼亚大学经济模型估算，美国政府或需退还1750亿美元关税。此外，特朗普当天称他有“其他选择”，他签署新的行政令，对来自所有国家和地区的商品加征10%的关税...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">13</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">国际联播快讯</div>
+                        <div class="news-content">伊朗称2至3天内完成核协议草案起草伊朗外长阿拉格齐20日在接受美国媒体采访时表示，伊朗将在2到3天内完成核协议草案的起草工作，并在获得伊朗领导人的最终批准后交给美方。他强调，外交谈判是解决伊核问题的唯一办法，军事选项只会带来灾难。同一天，当被媒体问到是否考虑“有限军事打击”以施压伊朗达成协议时，美国总统特朗普称他正在考虑。另据美国媒体20日报道，已有数百名美军士兵从卡塔尔的乌代德空军基地以及在巴林的多个基地撤离。俄称俄轰炸机在白令海完成计划飞行俄罗斯国防部20日称，俄军两架图-95MS战略轰炸机在白令海中立水域上空完成计划飞行，时长超过14小时，在航线个...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="news-item">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="news-number">14</span>
+                    <div style="flex: 1;">
+                        <div class="news-title">情满中国年</div>
+                        <div class="news-content">春佳节，处处喜气洋洋。节目的最后，让我们一起感受祖国各地浓浓的年味。
+
+
+---
+
+*来源链接: https://cn.govopendata.com/xinwenlianbo/20260221/*</div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="section-divider">
+                ✨ 感谢关注每日新闻更新 ✨
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>此邮件由自动化爬虫生成</p>
+            <p style="margin-top: 8px; color: #bbb;">本邮件内容版权归 CCTV 新闻联播所有</p>
+        </div>
+    </div>
+</body>
+</html>
