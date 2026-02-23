@@ -2,8 +2,8 @@ name: Daily News Crawler
 
 on:
   schedule:
-    # 每天北京时间早上 8:30 (UTC+8 = UTC 00:30)
-    - cron: '30 0 * * *'
+    # 每天北京时间早上 8:30 (考虑 GitHub Actions 约 3 小时延迟，设置 UTC 前一天 21:30)
+    - cron: '30 21 * * *'
   workflow_dispatch:  # 允许手动触发
 
 jobs:
