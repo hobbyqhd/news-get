@@ -27,6 +27,10 @@ temp.html
 .env
 .env.local
 
+# Claude Code 本地配置
+.claude/settings.local.json
+CLAUDE.local.md
+
 # 操作系统
 .DS_Store
 Thumbs.db
